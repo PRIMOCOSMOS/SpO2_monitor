@@ -1,12 +1,12 @@
-# Copyright (C) 2023-2025 Advanced Micro Devices, Inc.  All rights reserved.
+# Copyright (C) 2023-2025 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 cmake_minimum_required(VERSION 3.16)
 enable_language(C ASM CXX)
 
-###    USER SETTINGS  START    ###
+### USER SETTINGS START ###
 # Below settings can be customized
 # User needs to edit it manually as per their needs.
-###    DO NOT ADD OR REMOVE VARIABLES FROM THIS SECTION    ###
+### DO NOT ADD OR REMOVE VARIABLES FROM THIS SECTION ###
 # -----------------------------------------
 # Add any compiler definitions, they will be added as extra definitions
 # Example : Adding VERBOSE=1 will pass -DVERBOSE=1 to the compiler.
@@ -20,13 +20,19 @@ set(USER_UNDEFINED_SYMBOLS
 "__clang__"
 )
 
-
 # Add any directories below, they will be added as extra include directories.
 # Example 1: Adding /proj/data/include will pass -I/proj/data/include.
 # Example 2: Adding ../../common/include will consider the path as relative to this component directory.
 # Example 3: Adding ${CMAKE_SOURCE_DIR}/data/include to add data/include from this project.
 
 set(USER_INCLUDE_DIRECTORIES
+    "${CMAKE_CURRENT_SOURCE_DIR}/DMA"
+    "${CMAKE_CURRENT_SOURCE_DIR}/FIR"
+    "${CMAKE_CURRENT_SOURCE_DIR}/HR_algor"
+    "${CMAKE_CURRENT_SOURCE_DIR}/IIC_PL"
+    "${CMAKE_CURRENT_SOURCE_DIR}/MAX30102"
+    "${CMAKE_CURRENT_SOURCE_DIR}/SPO2"
+    "${CMAKE_CURRENT_SOURCE_DIR}/interrupt"
 )
 
 #Add any source below, they will be added as Compile sources.
@@ -34,6 +40,13 @@ set(USER_INCLUDE_DIRECTORIES
 #Example 2: Adding ../../common/helloworld.c will consider the path as relative to this component directory
 #Example 3: Adding ${MY_ENV}/data/helloworld.c are expanded using project-specific environment settings.
 set(USER_COMPILE_SOURCES
+    "${CMAKE_CURRENT_SOURCE_DIR}/main.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/DMA/dma_ctrl.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/HR_algor/hr_calc.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/IIC_PL/iic_pl_ctrl.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/MAX30102/max30102.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/SPO2/spo2_calc.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/SPO2/ui_manager.c"
 )
 
 # -----------------------------------------
@@ -61,7 +74,7 @@ set(USER_COMPILE_WARNINGS_INHIBIT_ALL )
 
 # -----------------------------------------
 
-# Optimization level   "-O0" [None], "-O1" [Optimize] , "-O2" [Optimize More], "-O3" [Optimize Most] or "-Os" [Optimize Size]
+# Optimization level "-O0" [None], "-O1" [Optimize] , "-O2" [Optimize More], "-O3" [Optimize Most] or "-Os" [Optimize Size]
 set(USER_COMPILE_OPTIMIZATION_LEVEL -O0)
 
 # Other flags related to optimization
@@ -90,7 +103,7 @@ set(USER_COMPILE_ANSI )
 set(USER_COMPILE_RELAXATION "-Wl,--no-relax")
 set(USER_COMPILE_GARBAGE "")
 # Add any compiler options that are not covered by the above variables, they will be added as extra compiler options
-# To enable profiling -pg [ for gprof ]  or -p [ for prof information ]
+# To enable profiling -pg [ for gprof ] or -p [ for prof information ]
 set(USER_COMPILE_OTHER_FLAGS )
 
 # -----------------------------------------
@@ -108,7 +121,6 @@ set(USER_LINK_NO_STDLIB )
 
 # Omit all symbol information. (-s)
 set(USER_LINK_OMIT_ALL_SYMBOL_INFO )
-
 
 # -----------------------------------------
 
@@ -134,66 +146,66 @@ set(USER_LINK_OTHER_FLAGS
 
 # -----------------------------------------
 
-###   END OF USER SETTINGS SECTION ###
-###   DO NOT EDIT BEYOND THIS LINE ###
+### END OF USER SETTINGS SECTION ###
+### DO NOT EDIT BEYOND THIS LINE ###
 
 set(USER_COMPILE_OPTIONS
-    " ${USER_COMPILE_WARNINGS_ALL}"
-    " ${USER_COMPILE_WARNINGS_EXTRA}"
-    " ${USER_COMPILE_WARNINGS_AS_ERRORS}"
-    " ${USER_COMPILE_WARNINGS_CHECK_SYNTAX_ONLY}"
-    " ${USER_COMPILE_WARNINGS_PEDANTIC}"
-    " ${USER_COMPILE_WARNINGS_PEDANTIC_AS_ERRORS}"
-    " ${USER_COMPILE_WARNINGS_INHIBIT_ALL}"
-    " ${USER_COMPILE_OPTIMIZATION_LEVEL}"
-    " ${USER_COMPILE_OPTIMIZATION_OTHER_FLAGS}"
-    " ${USER_COMPILE_DEBUG_LEVEL}"
-    " ${USER_COMPILE_DEBUG_OTHER_FLAGS}"
-    " ${USER_COMPILE_VERBOSE}"
-    " ${USER_COMPILE_ANSI}"
-    " ${USER_COMPILE_OTHER_FLAGS}"
+ " ${USER_COMPILE_WARNINGS_ALL}"
+ " ${USER_COMPILE_WARNINGS_EXTRA}"
+ " ${USER_COMPILE_WARNINGS_AS_ERRORS}"
+ " ${USER_COMPILE_WARNINGS_CHECK_SYNTAX_ONLY}"
+ " ${USER_COMPILE_WARNINGS_PEDANTIC}"
+ " ${USER_COMPILE_WARNINGS_PEDANTIC_AS_ERRORS}"
+ " ${USER_COMPILE_WARNINGS_INHIBIT_ALL}"
+ " ${USER_COMPILE_OPTIMIZATION_LEVEL}"
+ " ${USER_COMPILE_OPTIMIZATION_OTHER_FLAGS}"
+ " ${USER_COMPILE_DEBUG_LEVEL}"
+ " ${USER_COMPILE_DEBUG_OTHER_FLAGS}"
+ " ${USER_COMPILE_VERBOSE}"
+ " ${USER_COMPILE_ANSI}"
+ " ${USER_COMPILE_OTHER_FLAGS}"
 )
 foreach(entry ${USER_UNDEFINED_SYMBOLS})
-    list(APPEND USER_COMPILE_OPTIONS " -U${entry}")
+ list(APPEND USER_COMPILE_OPTIONS " -U${entry}")
 endforeach()
 
 # Process USER_LINK_DIRECTORIES to generate proper -L flags
 if(USER_LINK_DIRECTORIES)
-    # Convert list to string with proper -L flag formatting
-    string(REPLACE ";" "\" -L\"" _formatted_dirs "${USER_LINK_DIRECTORIES}")
-    set(USER_LINK_DIRECTORIES "${_formatted_dirs}")
+ # Convert list to string with proper -L flag formatting
+ string(REPLACE ";" " -L" _formatted_dirs "${USER_LINK_DIRECTORIES}")
+ set(USER_LINK_DIRECTORIES "${_formatted_dirs}")
 endif()
 
 set(USER_LINK_OPTIONS
-    " ${USER_LINKER_NO_START_FILES}"
-    " ${USER_LINKER_NO_DEFAULT_LIBS}"
-    " ${USER_LINKER_NO_STDLIB}"
-    " ${USER_LINKER_OMIT_ALL_SYMBOL_INFO}"
-    " ${USER_LINK_OTHER_FLAGS}"
+ " ${USER_LINKER_NO_START_FILES}"
+ " ${USER_LINKER_NO_DEFAULT_LIBS}"
+ " ${USER_LINKER_NO_STDLIB}"
+ " ${USER_LINKER_OMIT_ALL_SYMBOL_INFO}"
+ " ${USER_LINK_OTHER_FLAGS}"
 )
 if(("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "microblaze") OR ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "microblaze_riscv"))
-	if(USER_COMPILE_RELAXATION)
-		string(FIND "${CMAKE_C_LINK_FLAGS}" "-Wl,--no-relax" POSITION)
-		if(POSITION EQUAL -1)
-		    set(CMAKE_C_LINK_FLAGS "  -Wl,--no-relax ${CMAKE_C_LINK_FLAGS}" CACHE STRING "CMAKE C LINK FLAGS" FORCE)
-		    set(CMAKE_ASM_LINK_FLAGS "  -Wl,--no-relax ${CMAKE_ASM_LINK_FLAGS}" CACHE STRING "CMAKE ASM LINK FLAGS" FORCE)
-		    set(CMAKE_CXX_LINK_FLAGS "  -Wl,--no-relax ${CMAKE_CXX_LINK_FLAGS}" CACHE STRING "CMAKE CXX LINK FLAGS" FORCE)
-		endif()
-	else()
-		string(REPLACE "-Wl,--no-relax" "" CMAKE_C_LINK_FLAGS "${CMAKE_C_LINK_FLAGS}")
-		string(REPLACE "-Wl,--no-relax" "" CMAKE_ASM_LINK_FLAGS "${CMAKE_ASM_LINK_FLAGS}")
-		string(REPLACE "-Wl,--no-relax" "" CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS}")
-	endif()
-	if(USER_COMPILE_GARBAGE)
-		string(FIND "${CMAKE_C_FLAGS}" "-ffunction-sections -fdata-sections" POSITION)
-		if(POSITION EQUAL -1)
-		    set(CMAKE_C_FLAGS " -ffunction-sections -fdata-sections ${CMAKE_C_FLAGS}" CACHE STRING "CMAKE C FLAGS" FORCE)
-		    set(CMAKE_CXX_FLAGS " -ffunction-sections -fdata-sections ${CMAKE_CXX_FLAGS}" CACHE STRING "CMAKE CXX FLAGS" FORCE)
-		    set(CMAKE_ASM_FLAGS " -ffunction-sections -fdata-sections ${CMAKE_ASM_FLAGS}" CACHE STRING "CMAKE ASM FLAGS" FORCE)
-		endif()
-	else()
-		string(REPLACE "-ffunction-sections -fdata-sections" "" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
-		string(REPLACE "-ffunction-sections -fdata-sections" "" CMAKE_CXX_FLAGS "${CMAKE_ASM_FLAGS}")
-		string(REPLACE "-ffunction-sections -fdata-sections" "" CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS}")
-	endif()
+ if(USER_COMPILE_RELAXATION)
+ string(FIND "${CMAKE_C_LINK_FLAGS}" "-Wl,--no-relax" POSITION)
+ if(POSITION EQUAL -1)
+ set(CMAKE_C_LINK_FLAGS " -Wl,--no-relax ${CMAKE_C_LINK_FLAGS}" CACHE STRING "CMAKE C LINK FLAGS" FORCE)
+ set(CMAKE_ASM_LINK_FLAGS " -Wl,--no-relax ${CMAKE_ASM_LINK_FLAGS}" CACHE STRING "CMAKE ASM LINK FLAGS" FORCE)
+ set(CMAKE_CXX_LINK_FLAGS " -Wl,--no-relax ${CMAKE_CXX_LINK_FLAGS}" CACHE STRING "CMAKE CXX LINK FLAGS" FORCE)
+ endif()
+ else()
+ string(REPLACE "-Wl,--no-relax" "" CMAKE_C_LINK_FLAGS "${CMAKE_C_LINK_FLAGS}")
+ string(REPLACE "-Wl,--no-relax" "" CMAKE_ASM_LINK_FLAGS "${CMAKE_ASM_LINK_FLAGS}")
+ string(REPLACE "-Wl,--no-relax" "" CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS}")
+ endif()
+ if(USER_COMPILE_GARBAGE)
+ string(FIND "${CMAKE_C_FLAGS}" "-ffunction-sections -fdata-sections" POSITION)
+ if(POSITION EQUAL -1)
+ set(CMAKE_C_FLAGS " -ffunction-sections -fdata-sections ${CMAKE_C_FLAGS}" CACHE STRING "CMAKE C FLAGS" FORCE)
+ set(CMAKE_CXX_FLAGS " -ffunction-sections -fdata-sections ${CMAKE_CXX_FLAGS}" CACHE STRING "CMAKE CXX FLAGS" FORCE)
+ set(CMAKE_ASM_FLAGS " -ffunction-sections -fdata-sections ${CMAKE_ASM_FLAGS}" CACHE STRING "CMAKE ASM FLAGS" FORCE)
+ endif()
+ else()
+ string(REPLACE "-ffunction-sections -fdata-sections" "" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
+ string(REPLACE "-ffunction-sections -fdata-sections" "" CMAKE_CXX_FLAGS "${CMAKE_ASM_FLAGS}")
+ string(REPLACE "-ffunction-sections -fdata-sections" "" CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS}")
+ endif()
 endif()
