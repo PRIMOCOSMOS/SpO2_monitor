@@ -1,0 +1,4 @@
+domain_path: D:\Electronic_design\SPO2_monitor\platform\export\platform\sw\freertos_psu_cortexa53_0
+app_src_dir: D:\AMD\2025.2\Vitis\data\embeddedsw\lib\sw_apps\empty_application
+template: empty_application
+lang: c

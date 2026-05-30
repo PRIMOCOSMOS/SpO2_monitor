@@ -1,0 +1,7 @@
+[
+{
+  "directory": "D:/Electronic_design/SPO2_monitor/SpO2_app/src/.compile_commands",
+  "command": "D:\\AMD\\2025.2\\Vitis\\gnu\\aarch64\\nt\\aarch64-none\\bin\\aarch64-none-elf-gcc.exe -DFREERTOS_BSP -ID:/Electronic_design/SPO2_monitor/SpO2_app/src -isystem D:/Electronic_design/SPO2_monitor/platform/export/platform/sw/freertos_psu_cortexa53_0/include -isystem D:/AMD/2025.2/gnu/aarch64/nt/aarch64-none/x86_64-oesdk-mingw32/usr/lib/aarch64-xilinx-elf/gcc/aarch64-xilinx-elf/13.3.0/include -isystem D:/AMD/2025.2/gnu/aarch64/nt/aarch64-none/x86_64-oesdk-mingw32/usr/lib/aarch64-xilinx-elf/gcc/aarch64-xilinx-elf/13.3.0/include-fixed -isystem D:/AMD/2025.2/Vitis/gnu/aarch64/nt/aarch64-none/aarch64-xilinx-elf/usr/include  -DSDT  -MMD -MP -specs=D:/Electronic_design/SPO2_monitor/platform/export/platform/sw/freertos_psu_cortexa53_0/Xilinx.spec -ID:/Electronic_design/SPO2_monitor/platform/export/platform/sw/freertos_psu_cortexa53_0/include -Wall -Wextra      -O0  -g3     -U__clang__ -o CMakeFiles\\SpO2_app.elf.dir\\dummy.c.obj -c D:\\Electronic_design\\SPO2_monitor\\SpO2_app\\src\\dummy.c",
+  "file": "D:\\Electronic_design\\SPO2_monitor\\SpO2_app\\src\\dummy.c"
+}
+]

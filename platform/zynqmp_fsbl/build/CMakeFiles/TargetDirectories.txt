@@ -1,0 +1,4 @@
+D:/Electronic_design/SPO2_monitor/platform/zynqmp_fsbl/build/CMakeFiles/fsbl.elf.dir
+D:/Electronic_design/SPO2_monitor/platform/zynqmp_fsbl/build/CMakeFiles/print_build_info.dir
+D:/Electronic_design/SPO2_monitor/platform/zynqmp_fsbl/build/CMakeFiles/edit_cache.dir
+D:/Electronic_design/SPO2_monitor/platform/zynqmp_fsbl/build/CMakeFiles/rebuild_cache.dir
