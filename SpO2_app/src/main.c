@@ -44,7 +44,7 @@ DisplayCtrl gDispCtrl;   /* non-static: ui_manager.c calls DisplayChangeFrame */
 #define PWM_BASEADDR        XPAR_AX_PWM_0_BASEADDR
 #define DYNCLK_BASEADDR     XPAR_AXI_DYNCLK_0_BASEADDR
 #define VTC_BASEADDR        XPAR_V_TC_0_BASEADDR
-#define VDMA_DEVICE_ID      XPAR_AXI_VDMA_0_DEVICE_ID
+#define VDMA_DEVICE_ID      XPAR_AXI_VDMA_0_BASEADDR
 
 /* Framebuffers for 800x480 (WVGA) — 24-bit RGB888 to match VDMA tdata-width */
 #define DISPLAY_WIDTH  800
@@ -75,7 +75,7 @@ int main() {
 
     /* 3. Backlight PWM (must happen before display, no vTaskDelay here) */
     set_pwm_frequency(PWM_BASEADDR, 100000000, 1000.0f);
-    set_pwm_duty(PWM_BASEADDR, 80.0f);
+    set_pwm_duty(PWM_BASEADDR, 0.80f);
 
     /* 4. VDMA driver instance init (Digilent display_ctrl does NOT do this) */
     XAxiVdma_Config *vdmaConfig = XAxiVdma_LookupConfig(VDMA_DEVICE_ID);
