@@ -37,18 +37,19 @@ volatile bool g_sensor_online = false;
 /* Hardware Instances */
 static XScuGic IntcInstance;
 static XAxiVdma VdmaInstance;
-DisplayCtrl gDispCtrl;   /* 非 static，供 ui_manager.c 做 DisplayChangeFrame */
+DisplayCtrl gDispCtrl;   /* non-static: ui_manager.c calls DisplayChangeFrame */
 
-/* Hardware Settings - Based on pl.dtsi */
-#define MAX30102_INT_ID     136 
+/* Hardware Settings - Derived from pl.dtsi */
+#define MAX30102_INT_ID     136
 #define PWM_BASEADDR        XPAR_AX_PWM_0_BASEADDR
 #define DYNCLK_BASEADDR     XPAR_AXI_DYNCLK_0_BASEADDR
 #define VTC_BASEADDR        XPAR_V_TC_0_BASEADDR
+#define VDMA_DEVICE_ID      XPAR_AXI_VDMA_0_DEVICE_ID
 
-/* Framebuffers for 800x480 (WVGA) — 与 VDMA 24-bit RGB888 匹配 */
+/* Framebuffers for 800x480 (WVGA) — 24-bit RGB888 to match VDMA tdata-width */
 #define DISPLAY_WIDTH  800
 #define DISPLAY_HEIGHT 480
-#define STRIDE         (DISPLAY_WIDTH * 3) 
+#define STRIDE         (DISPLAY_WIDTH * 3)
 uint8_t frameBuf[DISPLAY_NUM_FRAMES][DISPLAY_HEIGHT * STRIDE] __attribute__((aligned(256)));
 uint8_t *pFrames[DISPLAY_NUM_FRAMES];
 
@@ -60,63 +61,84 @@ void vTaskControl(void *pvParameters);
 
 int main() {
     XStatus Status;
-    xil_printf("--- SpO2 Monitor Start ---\r\n");
+    xil_printf("\r\n--- SpO2 Monitor Start ---\r\n");
 
-    /* 1. 初始化显存指针 (必须最先执行) */
+    /* 1. Framebuffer pointer setup (must be first) */
     for (int i = 0; i < DISPLAY_NUM_FRAMES; i++) {
         pFrames[i] = frameBuf[i];
-        memset(pFrames[i], 0, DISPLAY_HEIGHT * STRIDE); // 预清空显存为黑色
+        memset(pFrames[i], 0, DISPLAY_HEIGHT * STRIDE); /* clear to black */
     }
 
-    /* 2. 基础硬件初始化 */
+    /* 2. Basic peripheral init */
     IIC_PL_Init();
     DMA_Init();
-    
-    /* 3. 背光与时钟 (注意：这里不要使用 vTaskDelay) */
-    set_pwm_frequency(PWM_BASEADDR, 100000000, 1000.0f);
-    set_pwm_duty(PWM_BASEADDR, 80.0f); 
 
-    /* 4. 视频流初始化 */
-    DisplayInitialize(&gDispCtrl, &VdmaInstance, VTC_BASEADDR, DYNCLK_BASEADDR, pFrames, STRIDE);
+    /* 3. Backlight PWM (must happen before display, no vTaskDelay here) */
+    set_pwm_frequency(PWM_BASEADDR, 100000000, 1000.0f);
+    set_pwm_duty(PWM_BASEADDR, 80.0f);
+
+    /* 4. VDMA driver instance init (Digilent display_ctrl does NOT do this) */
+    XAxiVdma_Config *vdmaConfig = XAxiVdma_LookupConfig(VDMA_DEVICE_ID);
+    if (vdmaConfig == NULL) {
+        xil_printf("CRITICAL: XAxiVdma_LookupConfig failed!\r\n");
+        while (1); /* halt */
+    }
+    Status = XAxiVdma_CfgInitialize(&VdmaInstance, vdmaConfig, vdmaConfig->BaseAddress);
+    if (Status != XST_SUCCESS) {
+        xil_printf("CRITICAL: XAxiVdma_CfgInitialize failed (%d)!\r\n", Status);
+        while (1); /* halt */
+    }
+    xil_printf("[VDMA] Instance initialized OK.\r\n");
+
+    /* 5. Display pipeline init + start */
+    Status = DisplayInitialize(&gDispCtrl, &VdmaInstance, VTC_BASEADDR, DYNCLK_BASEADDR, pFrames, STRIDE);
+    if (Status != XST_SUCCESS) {
+        xil_printf("CRITICAL: DisplayInitialize failed (%d)!\r\n", Status);
+    }
     DisplaySetMode(&gDispCtrl, &VMODE_800x480);
     Status = DisplayStart(&gDispCtrl);
     if (Status != XST_SUCCESS) {
-        xil_printf("CRITICAL: Display Pipeline failed to lock clock!\r\n");
+        xil_printf("CRITICAL: DisplayStart failed (%d) — check VDMA stride/address/clock!\r\n", Status);
+    } else {
+        xil_printf("[Display] Pipeline started OK.\r\n");
     }
 
-    /* 5. LVGL 初始化 (在启动 Scheduler 之前) */
+    /* 6. LVGL init (before scheduler) */
     lv_init();
-    UI_Init(); 
+    UI_Init();
 
-    /* 6. 创建同步对象 */
+    /* 7. FreeRTOS sync primitives */
     xRawDataQueue = xQueueCreate(64, sizeof(ppg_data_t));
     xGuiSemaphore = xSemaphoreCreateMutex();
     xSensorDataReady = xSemaphoreCreateBinary();
 
-    /* 7. 中断挂载 */
+    /* 8. Interrupt controller + MAX30102 ISR hook */
     Setup_Interrupt_System(&IntcInstance, MAX30102_INT_ID);
 
-    /* 8. 创建任务 */
-    xTaskCreate(vTaskSensor, "Sensor", 2048, NULL, TASK_SENSOR_PRIO, NULL);
-    xTaskCreate(vTaskProcessing, "Proc", 2048, NULL, TASK_PROC_PRIO, NULL);
-    xTaskCreate(vTaskUI, "UI", 4096, NULL, TASK_UI_PRIO, NULL);
-    xTaskCreate(vTaskControl, "Ctrl", 1024, NULL, TASK_CTRL_PRIO, NULL);
+    /* 9. Task creation */
+    xTaskCreate(vTaskSensor,    "Sensor", 2048, NULL, TASK_SENSOR_PRIO, NULL);
+    xTaskCreate(vTaskProcessing, "Proc",   2048, NULL, TASK_PROC_PRIO,   NULL);
+    xTaskCreate(vTaskUI,        "UI",     4096, NULL, TASK_UI_PRIO,     NULL);
+    xTaskCreate(vTaskControl,   "Ctrl",   1024, NULL, TASK_CTRL_PRIO,   NULL);
 
     xil_printf("Starting Scheduler...\r\n");
     vTaskStartScheduler();
 
-    while(1);
+    while (1);
     return 0;
 }
 
 void vTaskSensor(void *pvParameters) {
     (void)pvParameters;
     ppg_data_t sample;
-    MAX30102_Config_t config = { .sample_rate = MAX30102_SR_400, .led_current = MAX30102_LED_CUR_50MA };
+    MAX30102_Config_t config = {
+        .sample_rate = MAX30102_SR_400,
+        .led_current = MAX30102_LED_CUR_50MA
+    };
     bool sensor_ready = false;
 
     for (;;) {
-        /* ---------- INIT / RETRY 状态 ---------- */
+        /* ---------- INIT / RETRY state ---------- */
         if (!sensor_ready) {
             if (MAX30102_Init(&config) == XST_SUCCESS) {
                 xil_printf("[Sensor] MAX30102 detected! Entering normal acquisition.\r\n");
@@ -126,12 +148,12 @@ void vTaskSensor(void *pvParameters) {
                 xil_printf("[Sensor] Not detected. Retry in 2 s...\r\n");
                 g_sensor_online = false;
                 vTaskDelay(pdMS_TO_TICKS(2000));
-                continue;   /* 回到循环开头再次尝试 */
+                continue;   /* retry immediately */
             }
         }
 
-        /* ---------- ACQUISITION 状态 ---------- */
-        /* 等待中断信号量；若 3 s 未触发，认为传感器掉线 */
+        /* ---------- ACQUISITION state ---------- */
+        /* Block on ISR semaphore; if no interrupt for 3 s, assume unplugged */
         if (xSemaphoreTake(xSensorDataReady, pdMS_TO_TICKS(3000)) == pdTRUE) {
             while (MAX30102_ReadFIFO(&sample.red, &sample.ir) == XST_SUCCESS) {
                 xQueueSend(xRawDataQueue, &sample, 0);
@@ -147,11 +169,12 @@ void vTaskSensor(void *pvParameters) {
 void vTaskProcessing(void *pvParameters) {
     (void)pvParameters;
     ppg_data_t data;
-    float spo2 = 0; int hr = 0;
+    float spo2 = 0;
+    int hr = 0;
     for (;;) {
         if (xQueueReceive(xRawDataQueue, &data, portMAX_DELAY) == pdTRUE) {
             spo2 = SPO2_Calculate(data.red, data.ir);
-            hr = HR_Calculate(data.ir);
+            hr   = HR_Calculate(data.ir);
             if (xSemaphoreTake(xGuiSemaphore, portMAX_DELAY) == pdTRUE) {
                 UI_UpdateMetrics(spo2, hr);
                 UI_PushWaveform(data.red, data.ir);
@@ -177,14 +200,11 @@ void vTaskControl(void *pvParameters) {
     bool last_online = false;
 
     for (;;) {
-        /* 直接读取 vTaskSensor 维护的状态，避免离线时对总线发 I2C */
         bool online = g_sensor_online;
-
         if (online != last_online) {
             xil_printf("[Control] Sensor status change: %s\r\n", online ? "ONLINE" : "OFFLINE");
             last_online = online;
         }
-
         if (xSemaphoreTake(xGuiSemaphore, portMAX_DELAY) == pdTRUE) {
             UI_UpdateSensorStatus(online);
             xSemaphoreGive(xGuiSemaphore);
