@@ -51,14 +51,14 @@ endif()
 
 if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
   list(APPEND CMAKE_ABSOLUTE_DESTINATION_FILES
-   "D:/Electronic_design/SPO2_monitor/platform/psu_cortexa53_0/freertos_psu_cortexa53_0/bsp/include/../include")
+   "D:\Electronic_design\SPO2_monitor\platform\psu_cortexa53_0\freertos_psu_cortexa53_0\bsp\include/../include")
   if(CMAKE_WARN_ON_ABSOLUTE_INSTALL_DESTINATION)
     message(WARNING "ABSOLUTE path INSTALL DESTINATION : ${CMAKE_ABSOLUTE_DESTINATION_FILES}")
   endif()
   if(CMAKE_ERROR_ON_ABSOLUTE_INSTALL_DESTINATION)
     message(FATAL_ERROR "ABSOLUTE path INSTALL DESTINATION forbidden (by caller): ${CMAKE_ABSOLUTE_DESTINATION_FILES}")
   endif()
-  file(INSTALL DESTINATION "D:/Electronic_design/SPO2_monitor/platform/psu_cortexa53_0/freertos_psu_cortexa53_0/bsp/include/.." TYPE DIRECTORY MESSAGE_LAZY FILES "D:/Electronic_design/SPO2_monitor/platform/psu_cortexa53_0/freertos_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/include")
+  file(INSTALL DESTINATION "D:\Electronic_design\SPO2_monitor\platform\psu_cortexa53_0\freertos_psu_cortexa53_0\bsp\include/.." TYPE DIRECTORY MESSAGE_LAZY FILES "D:/Electronic_design/SPO2_monitor/platform/psu_cortexa53_0/freertos_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/include")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)

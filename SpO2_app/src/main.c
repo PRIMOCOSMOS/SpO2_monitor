@@ -4,15 +4,20 @@
 #include "semphr.h"
 #include "xil_printf.h"
 #include "xparameters.h"
+#include "xaxivdma.h"
+#include "xscugic.h"
+#include "xil_cache.h"
 
 /* Project Includes */
 #include "MAX30102/max30102.h"
 #include "SPO2/spo2_calc.h"
 #include "HR_algor/hr_calc.h"
+#include "SPO2/ui_manager.h"
 #include "display_ctrl/display_ctrl.h"
-#include "PWM/pwm_ctrl.h"
+#include "PWM/ax_pwm.h"
 #include "DMA/dma_ctrl.h"
 #include "IIC_PL/iic_pl_ctrl.h"
+#include "interrupt/int_controller.h"
 #include "third_party/lvgl/lvgl.h"
 
 /* Task Priorities */
@@ -21,9 +26,28 @@
 #define TASK_UI_PRIO        ( tskIDLE_PRIORITY + 3 )
 #define TASK_CTRL_PRIO      ( tskIDLE_PRIORITY + 2 )
 
-/* Queues & Semaphores */
-QueueHandle_t xRawDataQueue;
-SemaphoreHandle_t xGuiSemaphore;
+/* Global Handles */
+QueueHandle_t xRawDataQueue = NULL;
+SemaphoreHandle_t xGuiSemaphore = NULL;
+SemaphoreHandle_t xSensorDataReady = NULL;
+
+/* Hardware Instances */
+static XScuGic IntcInstance;
+static XAxiVdma VdmaInstance;
+static DisplayCtrl DispCtrl;
+
+/* Hardware Settings - Based on pl.dtsi */
+#define MAX30102_INT_ID     136 
+#define PWM_BASEADDR        XPAR_AX_PWM_0_BASEADDR
+#define DYNCLK_BASEADDR     XPAR_AXI_DYNCLK_0_BASEADDR
+#define VTC_BASEADDR        XPAR_V_TC_0_BASEADDR
+
+/* Framebuffers for 800x480 (WVGA) */
+#define DISPLAY_WIDTH  800
+#define DISPLAY_HEIGHT 480
+#define STRIDE         (DISPLAY_WIDTH * 4) 
+uint8_t frameBuf[DISPLAY_NUM_FRAMES][DISPLAY_HEIGHT * STRIDE] __attribute__((aligned(256)));
+uint8_t *pFrames[DISPLAY_NUM_FRAMES];
 
 /* Task Prototypes */
 void vTaskSensor(void *pvParameters);
@@ -32,76 +56,84 @@ void vTaskUI(void *pvParameters);
 void vTaskControl(void *pvParameters);
 
 int main() {
-    xil_printf("--- SpO2 Monitor Jumpstart (Zynq UltraScale+) ---\r\n");
+    XStatus Status;
+    xil_printf("--- SpO2 Monitor Start ---\r\n");
 
-    /* Initialize Hardware Components */
+    /* 1. 初始化显存指针 (必须最先执行) */
+    for (int i = 0; i < DISPLAY_NUM_FRAMES; i++) {
+        pFrames[i] = frameBuf[i];
+        memset(pFrames[i], 0, DISPLAY_HEIGHT * STRIDE); // 预清空显存为黑色
+    }
+
+    /* 2. 基础硬件初始化 */
     IIC_PL_Init();
     DMA_Init();
-    PWM_Init();
-    Display_Init(); // VDMA + VTC
     
-    /* Initialize UI Framework */
+    /* 3. 背光与时钟 (注意：这里不要使用 vTaskDelay) */
+    set_pwm_frequency(PWM_BASEADDR, 100000000, 1000.0f);
+    set_pwm_duty(PWM_BASEADDR, 80.0f); 
+
+    /* 4. 视频流初始化 */
+    DisplayInitialize(&DispCtrl, &VdmaInstance, VTC_BASEADDR, DYNCLK_BASEADDR, pFrames, STRIDE);
+    DisplaySetMode(&DispCtrl, &VMODE_800x480);
+    Status = DisplayStart(&DispCtrl);
+    if (Status != XST_SUCCESS) {
+        xil_printf("CRITICAL: Display Pipeline failed to lock clock!\r\n");
+    }
+
+    /* 5. LVGL 初始化 (在启动 Scheduler 之前) */
     lv_init();
-    UI_Init(); // Layout setup
+    UI_Init(); 
 
-    /* Create Queues */
-    xRawDataQueue = xQueueCreate(10, sizeof(ppg_data_t));
+    /* 6. 创建同步对象 */
+    xRawDataQueue = xQueueCreate(64, sizeof(ppg_data_t));
     xGuiSemaphore = xSemaphoreCreateMutex();
+    xSensorDataReady = xSemaphoreCreateBinary();
 
-    /* Create Tasks */
-    xTaskCreate(vTaskSensor, "SensorTask", 2048, NULL, TASK_SENSOR_PRIO, NULL);
-    xTaskCreate(vTaskProcessing, "ProcTask", 2048, NULL, TASK_PROC_PRIO, NULL);
-    xTaskCreate(vTaskUI, "UITask", 4096, NULL, TASK_UI_PRIO, NULL);
-    xTaskCreate(vTaskControl, "CtrlTask", 1024, NULL, TASK_CTRL_PRIO, NULL);
+    /* 7. 中断挂载 */
+    Setup_Interrupt_System(&IntcInstance, MAX30102_INT_ID);
 
-    /* Start Scheduler */
+    /* 8. 创建任务 */
+    xTaskCreate(vTaskSensor, "Sensor", 2048, NULL, TASK_SENSOR_PRIO, NULL);
+    xTaskCreate(vTaskProcessing, "Proc", 2048, NULL, TASK_PROC_PRIO, NULL);
+    xTaskCreate(vTaskUI, "UI", 4096, NULL, TASK_UI_PRIO, NULL);
+    xTaskCreate(vTaskControl, "Ctrl", 1024, NULL, TASK_CTRL_PRIO, NULL);
+
+    xil_printf("Starting Scheduler...\r\n");
     vTaskStartScheduler();
 
     while(1);
     return 0;
 }
 
-/**
- * @brief High-frequency sensor sampling task
- */
 void vTaskSensor(void *pvParameters) {
-    ppg_data_t raw_sample;
-    MAX30102_Config_t config = {
-        .sample_rate = MAX30102_SR_400,
-        .led_current = MAX30102_LED_CUR_50MA
-    };
+    (void)pvParameters;
+    ppg_data_t sample;
+    MAX30102_Config_t config = { .sample_rate = MAX30102_SR_400, .led_current = MAX30102_LED_CUR_50MA };
 
     if (MAX30102_Init(&config) != XST_SUCCESS) {
-        xil_printf("Error: MAX30102 not detected!\r\n");
+        xil_printf("Sensor Init Failed!\r\n");
     }
 
     for (;;) {
-        // Read Red and IR data
-        if (MAX30102_ReadFIFO(&raw_sample.red, &raw_sample.ir) == XST_SUCCESS) {
-            // Send to processing task via queue
-            xQueueSend(xRawDataQueue, &raw_sample, portMAX_DELAY);
+        if (xSemaphoreTake(xSensorDataReady, portMAX_DELAY) == pdTRUE) {
+            while (MAX30102_ReadFIFO(&sample.red, &sample.ir) == XST_SUCCESS) {
+                xQueueSend(xRawDataQueue, &sample, 0);
+            }
         }
-        vTaskDelay(pdMS_TO_TICKS(5)); // ~200Hz
     }
 }
 
-/**
- * @brief Algorithm processing task
- */
 void vTaskProcessing(void *pvParameters) {
+    (void)pvParameters;
     ppg_data_t data;
-    float spo2_val = 0;
-    int hr_val = 0;
-
+    float spo2 = 0; int hr = 0;
     for (;;) {
         if (xQueueReceive(xRawDataQueue, &data, portMAX_DELAY) == pdTRUE) {
-            // Apply algorithms
-            spo2_val = SPO2_Calculate(data.red, data.ir);
-            hr_val = HR_Calculate(data.ir);
-
-            // Update Global UI State (Protected by Mutex)
+            spo2 = SPO2_Calculate(data.red, data.ir);
+            hr = HR_Calculate(data.ir);
             if (xSemaphoreTake(xGuiSemaphore, portMAX_DELAY) == pdTRUE) {
-                UI_UpdateMetrics(spo2_val, hr_val);
+                UI_UpdateMetrics(spo2, hr);
                 UI_PushWaveform(data.red, data.ir);
                 xSemaphoreGive(xGuiSemaphore);
             }
@@ -109,10 +141,8 @@ void vTaskProcessing(void *pvParameters) {
     }
 }
 
-/**
- * @brief LVGL Refresh Task
- */
 void vTaskUI(void *pvParameters) {
+    (void)pvParameters;
     for (;;) {
         if (xSemaphoreTake(xGuiSemaphore, portMAX_DELAY) == pdTRUE) {
             lv_timer_handler();
@@ -122,19 +152,14 @@ void vTaskUI(void *pvParameters) {
     }
 }
 
-/**
- * @brief Maintenance and System Check
- */
 void vTaskControl(void *pvParameters) {
-    uint8_t brightness = 80;
+    (void)pvParameters;
     for (;;) {
-        // Periodic sensor status check
         bool online = MAX30102_CheckStatus();
-        UI_UpdateSensorStatus(online);
-
-        // Brightness control (Example)
-        PWM_SetBrightness(brightness);
-
+        if (xSemaphoreTake(xGuiSemaphore, portMAX_DELAY) == pdTRUE) {
+            UI_UpdateSensorStatus(online);
+            xSemaphoreGive(xGuiSemaphore);
+        }
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }

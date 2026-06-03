@@ -115,13 +115,13 @@ CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO:STRING=
 CMAKE_FIND_PACKAGE_REDIRECTS_DIR:STATIC=D:/Electronic_design/SPO2_monitor/platform/psu_cortexa53_0/freertos_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles/pkgRedirects
 
 //No help, variable specified on the command line.
-CMAKE_INCLUDE_PATH:UNINITIALIZED=D:/Electronic_design/SPO2_monitor/platform/psu_cortexa53_0/freertos_psu_cortexa53_0/bsp/include
+CMAKE_INCLUDE_PATH:UNINITIALIZED=D:\Electronic_design\SPO2_monitor\platform\psu_cortexa53_0\freertos_psu_cortexa53_0\bsp\include
 
 //Install path prefix, prepended onto install directories.
 CMAKE_INSTALL_PREFIX:PATH=C:/Program Files (x86)/bsp
 
 //No help, variable specified on the command line.
-CMAKE_LIBRARY_PATH:UNINITIALIZED=D:/Electronic_design/SPO2_monitor/platform/psu_cortexa53_0/freertos_psu_cortexa53_0/bsp/lib
+CMAKE_LIBRARY_PATH:UNINITIALIZED=D:\Electronic_design\SPO2_monitor\platform\psu_cortexa53_0\freertos_psu_cortexa53_0\bsp\lib
 
 //Path to a program.
 CMAKE_LINKER:FILEPATH=D:/AMD/2025.2/Vitis/gnu/aarch64/nt/aarch64-none/bin/aarch64-none-elf-ld.exe
@@ -153,7 +153,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELEASE:STRING=
 CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO:STRING=
 
 //No help, variable specified on the command line.
-CMAKE_MODULE_PATH:UNINITIALIZED=D:/Electronic_design/SPO2_monitor/platform/psu_cortexa53_0/freertos_psu_cortexa53_0/bsp
+CMAKE_MODULE_PATH:UNINITIALIZED=D:\Electronic_design\SPO2_monitor\platform\psu_cortexa53_0\freertos_psu_cortexa53_0\bsp
 
 //Path to a program.
 CMAKE_NM:FILEPATH=D:/AMD/2025.2/Vitis/gnu/aarch64/nt/aarch64-none/bin/aarch64-none-elf-nm.exe
@@ -210,7 +210,7 @@ CMAKE_SKIP_INSTALL_RPATH:BOOL=NO
 CMAKE_SKIP_RPATH:BOOL=NO
 
 //Specs file path for using CMAKE toolchain files
-CMAKE_SPECS_FILE:STRING=D:/Electronic_design/SPO2_monitor/platform/psu_cortexa53_0/freertos_psu_cortexa53_0/bsp/Xilinx.spec
+CMAKE_SPECS_FILE:STRING=D:\Electronic_design\SPO2_monitor\platform\psu_cortexa53_0\freertos_psu_cortexa53_0\bsp\Xilinx.spec
 
 //Flags used by the linker during the creation of static libraries
 // during all build types.
@@ -236,7 +236,7 @@ CMAKE_STATIC_LINKER_FLAGS_RELWITHDEBINFO:STRING=
 CMAKE_STRIP:FILEPATH=D:/AMD/2025.2/Vitis/gnu/aarch64/nt/aarch64-none/bin/aarch64-none-elf-strip.exe
 
 //No help, variable specified on the command line.
-CMAKE_TOOLCHAIN_FILE:UNINITIALIZED=D:/Electronic_design/SPO2_monitor/platform/psu_cortexa53_0/freertos_psu_cortexa53_0/bsp/cortexa53_toolchain.cmake
+CMAKE_TOOLCHAIN_FILE:UNINITIALIZED=D:\Electronic_design\SPO2_monitor\platform\psu_cortexa53_0\freertos_psu_cortexa53_0\bsp\cortexa53_toolchain.cmake
 
 //If this value is on, makefiles will be generated without the
 // .SILENT directive, and all commands will be echoed to the console
@@ -496,7 +496,7 @@ freertos_timer_task_stack_depth:STRING=configMINIMAL_STACK_SIZE
 
 //Sets the amount of RAM reserved for use by FreeRTOS - used when
 // tasks, queues, semaphores and event groups are created.
-freertos_total_heap_size:STRING=65536
+freertos_total_heap_size:STRING=2097152
 
 //Set to true to include counting semaphore functionality, or false
 // to exclude recursive mutex functionality.

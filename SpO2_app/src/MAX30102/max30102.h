@@ -3,12 +3,16 @@
 
 #include "xil_types.h"
 #include "xstatus.h"
+#include <stdint.h>
+#include <stdbool.h>
 
+/* Data Structure for Red and IR samples */
 typedef struct {
     uint32_t red;
     uint32_t ir;
 } ppg_data_t;
 
+/* Configuration Enums */
 typedef enum {
     MAX30102_SR_50 = 0x00,
     MAX30102_SR_100 = 0x01,
@@ -29,5 +33,6 @@ typedef struct {
 XStatus MAX30102_Init(MAX30102_Config_t *config);
 XStatus MAX30102_ReadFIFO(uint32_t *red, uint32_t *ir);
 bool MAX30102_CheckStatus(void);
+uint8_t MAX30102_ReadInterruptStatus(void);
 
 #endif

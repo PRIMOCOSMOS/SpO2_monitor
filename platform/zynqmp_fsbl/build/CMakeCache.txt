@@ -232,8 +232,8 @@ CMAKE_STATIC_LINKER_FLAGS_RELWITHDEBINFO:STRING=
 //Path to a program.
 CMAKE_STRIP:FILEPATH=D:/AMD/2025.2/Vitis/gnu/aarch64/nt/aarch64-none/bin/aarch64-none-elf-strip.exe
 
-//The CMake toolchain file
-CMAKE_TOOLCHAIN_FILE:FILEPATH=D:/Electronic_design/SPO2_monitor/platform/zynqmp_fsbl/zynqmp_fsbl_bsp/cortexa53_toolchain.cmake
+//No help, variable specified on the command line.
+CMAKE_TOOLCHAIN_FILE:UNINITIALIZED=D:/Electronic_design/SPO2_monitor/platform/zynqmp_fsbl/zynqmp_fsbl_bsp/cortexa53_toolchain.cmake
 
 //If this value is on, makefiles will be generated without the
 // .SILENT directive, and all commands will be echoed to the console

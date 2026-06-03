@@ -2,6 +2,7 @@
 #define SPO2_CALC_H
 
 #include <math.h>
+#include <stdint.h>
 
 /**
  * @brief Simple Ratio-of-Ratios SpO2 calculation
