@@ -25,8 +25,8 @@ XStatus Setup_Interrupt_System(XScuGic *GicInstPtr, uint32_t IntId) {
     Status = XScuGic_CfgInitialize(GicInstPtr, IntcConfig, IntcConfig->CpuBaseAddress);
     if (Status != XST_SUCCESS) return Status;
 
-    // Connect Handler
-    XScuGic_SetPriorityTriggerType(GicInstPtr, IntId, 0xA0, 0x3); // Falling edge or High level? MAX30102 is active low.
+    /* MAX30102 INT 为 Active-Low，但 PL 端加了非门，到 PS 端变为 Active-High / 上升沿触发 */
+    XScuGic_SetPriorityTriggerType(GicInstPtr, IntId, 0xA0, 0x3);
     Status = XScuGic_Connect(GicInstPtr, IntId, (Xil_ExceptionHandler)MAX30102_Int_Handler, NULL);
     if (Status != XST_SUCCESS) return Status;
 

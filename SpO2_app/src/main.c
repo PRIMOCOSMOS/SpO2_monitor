@@ -31,10 +31,13 @@ QueueHandle_t xRawDataQueue = NULL;
 SemaphoreHandle_t xGuiSemaphore = NULL;
 SemaphoreHandle_t xSensorDataReady = NULL;
 
+/* Sensor online flag (maintained by vTaskSensor, read by vTaskControl) */
+volatile bool g_sensor_online = false;
+
 /* Hardware Instances */
 static XScuGic IntcInstance;
 static XAxiVdma VdmaInstance;
-static DisplayCtrl DispCtrl;
+DisplayCtrl gDispCtrl;   /* 非 static，供 ui_manager.c 做 DisplayChangeFrame */
 
 /* Hardware Settings - Based on pl.dtsi */
 #define MAX30102_INT_ID     136 
@@ -42,10 +45,10 @@ static DisplayCtrl DispCtrl;
 #define DYNCLK_BASEADDR     XPAR_AXI_DYNCLK_0_BASEADDR
 #define VTC_BASEADDR        XPAR_V_TC_0_BASEADDR
 
-/* Framebuffers for 800x480 (WVGA) */
+/* Framebuffers for 800x480 (WVGA) — 与 VDMA 24-bit RGB888 匹配 */
 #define DISPLAY_WIDTH  800
 #define DISPLAY_HEIGHT 480
-#define STRIDE         (DISPLAY_WIDTH * 4) 
+#define STRIDE         (DISPLAY_WIDTH * 3) 
 uint8_t frameBuf[DISPLAY_NUM_FRAMES][DISPLAY_HEIGHT * STRIDE] __attribute__((aligned(256)));
 uint8_t *pFrames[DISPLAY_NUM_FRAMES];
 
@@ -74,9 +77,9 @@ int main() {
     set_pwm_duty(PWM_BASEADDR, 80.0f); 
 
     /* 4. 视频流初始化 */
-    DisplayInitialize(&DispCtrl, &VdmaInstance, VTC_BASEADDR, DYNCLK_BASEADDR, pFrames, STRIDE);
-    DisplaySetMode(&DispCtrl, &VMODE_800x480);
-    Status = DisplayStart(&DispCtrl);
+    DisplayInitialize(&gDispCtrl, &VdmaInstance, VTC_BASEADDR, DYNCLK_BASEADDR, pFrames, STRIDE);
+    DisplaySetMode(&gDispCtrl, &VMODE_800x480);
+    Status = DisplayStart(&gDispCtrl);
     if (Status != XST_SUCCESS) {
         xil_printf("CRITICAL: Display Pipeline failed to lock clock!\r\n");
     }
@@ -110,16 +113,33 @@ void vTaskSensor(void *pvParameters) {
     (void)pvParameters;
     ppg_data_t sample;
     MAX30102_Config_t config = { .sample_rate = MAX30102_SR_400, .led_current = MAX30102_LED_CUR_50MA };
-
-    if (MAX30102_Init(&config) != XST_SUCCESS) {
-        xil_printf("Sensor Init Failed!\r\n");
-    }
+    bool sensor_ready = false;
 
     for (;;) {
-        if (xSemaphoreTake(xSensorDataReady, portMAX_DELAY) == pdTRUE) {
+        /* ---------- INIT / RETRY 状态 ---------- */
+        if (!sensor_ready) {
+            if (MAX30102_Init(&config) == XST_SUCCESS) {
+                xil_printf("[Sensor] MAX30102 detected! Entering normal acquisition.\r\n");
+                sensor_ready = true;
+                g_sensor_online = true;
+            } else {
+                xil_printf("[Sensor] Not detected. Retry in 2 s...\r\n");
+                g_sensor_online = false;
+                vTaskDelay(pdMS_TO_TICKS(2000));
+                continue;   /* 回到循环开头再次尝试 */
+            }
+        }
+
+        /* ---------- ACQUISITION 状态 ---------- */
+        /* 等待中断信号量；若 3 s 未触发，认为传感器掉线 */
+        if (xSemaphoreTake(xSensorDataReady, pdMS_TO_TICKS(3000)) == pdTRUE) {
             while (MAX30102_ReadFIFO(&sample.red, &sample.ir) == XST_SUCCESS) {
                 xQueueSend(xRawDataQueue, &sample, 0);
             }
+        } else {
+            xil_printf("[Sensor] Timeout (3 s). Lost connection -> return to detection.\r\n");
+            sensor_ready = false;
+            g_sensor_online = false;
         }
     }
 }
@@ -154,8 +174,17 @@ void vTaskUI(void *pvParameters) {
 
 void vTaskControl(void *pvParameters) {
     (void)pvParameters;
+    bool last_online = false;
+
     for (;;) {
-        bool online = MAX30102_CheckStatus();
+        /* 直接读取 vTaskSensor 维护的状态，避免离线时对总线发 I2C */
+        bool online = g_sensor_online;
+
+        if (online != last_online) {
+            xil_printf("[Control] Sensor status change: %s\r\n", online ? "ONLINE" : "OFFLINE");
+            last_online = online;
+        }
+
         if (xSemaphoreTake(xGuiSemaphore, portMAX_DELAY) == pdTRUE) {
             UI_UpdateSensorStatus(online);
             xSemaphoreGive(xGuiSemaphore);

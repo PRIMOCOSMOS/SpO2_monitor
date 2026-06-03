@@ -19,7 +19,7 @@
 
 /* Memory settings */
 #define LV_MEM_CUSTOM 0
-#define LV_MEM_SIZE (128U * 1024U)
+#define LV_MEM_SIZE (512U * 1024U)  /* 必须足够容纳 800x480 全屏 widget */
 #define LV_MEM_ADR 0
 
 /* HAL Settings */
