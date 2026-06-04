@@ -275,13 +275,13 @@ TOOLCHAIN_DEP_FLAGS:STRING= -MMD -MP
 TOOLCHAIN_EXTRA_C_FLAGS:STRING= -O2 -g -Wall -Wextra -fno-tree-loop-distribute-patterns
 
 //Enable Interval Timer
-XILTIMER_en_interval_timer:BOOL=ON
+XILTIMER_en_interval_timer:BOOL=OFF
 
 //This parameter is used to select specific timer for sleep functionality
 XILTIMER_sleep_timer:STRING=Default
 
 //This parameter is used to select specific timer for tick functionality
-XILTIMER_tick_timer:STRING=psu_ttc_6
+XILTIMER_tick_timer:STRING=None
 
 //Yocto based embeddedsw FLOW
 YOCTO:BOOL=OFF
@@ -496,7 +496,7 @@ freertos_timer_task_stack_depth:STRING=configMINIMAL_STACK_SIZE
 
 //Sets the amount of RAM reserved for use by FreeRTOS - used when
 // tasks, queues, semaphores and event groups are created.
-freertos_total_heap_size:STRING=2097152
+freertos_total_heap_size:STRING=8388608
 
 //Set to true to include counting semaphore functionality, or false
 // to exclude recursive mutex functionality.
@@ -931,7 +931,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=58
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=57
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP

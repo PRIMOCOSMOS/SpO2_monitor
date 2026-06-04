@@ -229,7 +229,7 @@ os_config:
       name: freertos_total_heap_size
       permission: read_write
       type: integer
-      value: '2097152'
+      value: '8388608'
       default: '65536'
       options: []
       description: Sets the amount of RAM reserved for use by FreeRTOS - used when

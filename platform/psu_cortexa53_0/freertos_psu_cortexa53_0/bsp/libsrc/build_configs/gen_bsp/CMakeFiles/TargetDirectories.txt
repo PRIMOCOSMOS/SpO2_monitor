@@ -330,12 +330,6 @@ D:/Electronic_design/SPO2_monitor/platform/psu_cortexa53_0/freertos_psu_cortexa5
 D:/Electronic_design/SPO2_monitor/platform/psu_cortexa53_0/freertos_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/libsrc/xiltimer/src/core/default_timer/CMakeFiles/install.dir
 D:/Electronic_design/SPO2_monitor/platform/psu_cortexa53_0/freertos_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/libsrc/xiltimer/src/core/default_timer/CMakeFiles/install/local.dir
 D:/Electronic_design/SPO2_monitor/platform/psu_cortexa53_0/freertos_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/libsrc/xiltimer/src/core/default_timer/CMakeFiles/install/strip.dir
-D:/Electronic_design/SPO2_monitor/platform/psu_cortexa53_0/freertos_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/libsrc/xiltimer/src/core/ttcps/CMakeFiles/edit_cache.dir
-D:/Electronic_design/SPO2_monitor/platform/psu_cortexa53_0/freertos_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/libsrc/xiltimer/src/core/ttcps/CMakeFiles/rebuild_cache.dir
-D:/Electronic_design/SPO2_monitor/platform/psu_cortexa53_0/freertos_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/libsrc/xiltimer/src/core/ttcps/CMakeFiles/list_install_components.dir
-D:/Electronic_design/SPO2_monitor/platform/psu_cortexa53_0/freertos_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/libsrc/xiltimer/src/core/ttcps/CMakeFiles/install.dir
-D:/Electronic_design/SPO2_monitor/platform/psu_cortexa53_0/freertos_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/libsrc/xiltimer/src/core/ttcps/CMakeFiles/install/local.dir
-D:/Electronic_design/SPO2_monitor/platform/psu_cortexa53_0/freertos_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/libsrc/xiltimer/src/core/ttcps/CMakeFiles/install/strip.dir
 D:/Electronic_design/SPO2_monitor/platform/psu_cortexa53_0/freertos_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/libsrc/freertos10_xilinx/src/CMakeFiles/freertos.dir
 D:/Electronic_design/SPO2_monitor/platform/psu_cortexa53_0/freertos_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/libsrc/freertos10_xilinx/src/CMakeFiles/edit_cache.dir
 D:/Electronic_design/SPO2_monitor/platform/psu_cortexa53_0/freertos_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/libsrc/freertos10_xilinx/src/CMakeFiles/rebuild_cache.dir

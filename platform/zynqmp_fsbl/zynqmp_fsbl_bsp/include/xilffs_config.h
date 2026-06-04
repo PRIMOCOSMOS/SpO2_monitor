@@ -15,10 +15,10 @@
 /* #undef RAMFS_SIZE */
 /* #undef RAMFS_START_ADDR */
 
-#define FILE_SYSTEM_READ_ONLY  
+/* #undef FILE_SYSTEM_READ_ONLY */
 /* #undef FILE_SYSTEM_FS_EXFAT */
 /* #undef FILE_SYSTEM_USE_LFN */
-/* #undef FILE_SYSTEM_USE_MKFS */
+#define FILE_SYSTEM_USE_MKFS  
 /* #undef FILE_SYSTEM_USE_TRIM */
 /* #undef FILE_SYSTEM_MULTI_PARTITION */
 /* #undef FILE_SYSTEM_USE_CHMOD */

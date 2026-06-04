@@ -40,7 +40,6 @@ endif()
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
   include("D:/Electronic_design/SPO2_monitor/platform/psu_cortexa53_0/freertos_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/libsrc/xiltimer/src/core/default_timer/cmake_install.cmake")
-  include("D:/Electronic_design/SPO2_monitor/platform/psu_cortexa53_0/freertos_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/libsrc/xiltimer/src/core/ttcps/cmake_install.cmake")
 
 endif()
 

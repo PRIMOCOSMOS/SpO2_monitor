@@ -28,8 +28,8 @@ CMAKE_ASM_COMPILER_AR:FILEPATH=D:/AMD/2025.2/Vitis/gnu/aarch64/nt/aarch64-none/b
 // for the GCC compiler
 CMAKE_ASM_COMPILER_RANLIB:FILEPATH=D:/AMD/2025.2/Vitis/gnu/aarch64/nt/aarch64-none/bin/aarch64-none-elf-gcc-ranlib.exe
 
-//CMAKE ASM FLAGS
-CMAKE_ASM_FLAGS:STRING=  -DSDT  -MMD -MP -specs=D:/Electronic_design/SPO2_monitor/platform/zynqmp_fsbl/zynqmp_fsbl_bsp/Xilinx.spec -Os -flto -ffat-lto-objects -DARMA53_64 -ID:/Electronic_design/SPO2_monitor/platform/zynqmp_fsbl/zynqmp_fsbl_bsp/include -Os -flto -ffat-lto-objects -DARMA53_64
+//ASM FLAGS
+CMAKE_ASM_FLAGS:STRING= -DSDT  -MMD -MP -specs=D:/Electronic_design/SPO2_monitor/platform/zynqmp_fsbl/zynqmp_fsbl_bsp/Xilinx.spec -Os -flto -ffat-lto-objects -DARMA53_64 -ID:/Electronic_design/SPO2_monitor/platform/zynqmp_fsbl/zynqmp_fsbl_bsp/include
 
 //Flags used by the ASM compiler during DEBUG builds.
 CMAKE_ASM_FLAGS_DEBUG:STRING=-g
@@ -78,8 +78,8 @@ CMAKE_C_COMPILER_AR:FILEPATH=D:/AMD/2025.2/Vitis/gnu/aarch64/nt/aarch64-none/bin
 // for the GCC compiler
 CMAKE_C_COMPILER_RANLIB:FILEPATH=D:/AMD/2025.2/Vitis/gnu/aarch64/nt/aarch64-none/bin/aarch64-none-elf-gcc-ranlib.exe
 
-//CMAKE C FLAGS
-CMAKE_C_FLAGS:STRING=  -DSDT  -MMD -MP -specs=D:/Electronic_design/SPO2_monitor/platform/zynqmp_fsbl/zynqmp_fsbl_bsp/Xilinx.spec -Os -flto -ffat-lto-objects -DARMA53_64 -ID:/Electronic_design/SPO2_monitor/platform/zynqmp_fsbl/zynqmp_fsbl_bsp/include -Os -flto -ffat-lto-objects -DARMA53_64
+//CFLAGS
+CMAKE_C_FLAGS:STRING= -DSDT  -MMD -MP -specs=D:/Electronic_design/SPO2_monitor/platform/zynqmp_fsbl/zynqmp_fsbl_bsp/Xilinx.spec -Os -flto -ffat-lto-objects -DARMA53_64 -ID:/Electronic_design/SPO2_monitor/platform/zynqmp_fsbl/zynqmp_fsbl_bsp/include
 
 //Flags used by the C compiler during DEBUG builds.
 CMAKE_C_FLAGS_DEBUG:STRING=-g
@@ -235,8 +235,8 @@ CMAKE_STATIC_LINKER_FLAGS_RELWITHDEBINFO:STRING=
 //Path to a program.
 CMAKE_STRIP:FILEPATH=D:/AMD/2025.2/Vitis/gnu/aarch64/nt/aarch64-none/bin/aarch64-none-elf-strip.exe
 
-//No help, variable specified on the command line.
-CMAKE_TOOLCHAIN_FILE:UNINITIALIZED=D:/Electronic_design/SPO2_monitor/platform/zynqmp_fsbl/zynqmp_fsbl_bsp/cortexa53_toolchain.cmake
+//The CMake toolchain file
+CMAKE_TOOLCHAIN_FILE:FILEPATH=D:/Electronic_design/SPO2_monitor/platform/zynqmp_fsbl/zynqmp_fsbl_bsp/cortexa53_toolchain.cmake
 
 //If this value is on, makefiles will be generated without the
 // .SILENT directive, and all commands will be echoed to the console
@@ -295,7 +295,7 @@ XILFFS_ramfs_start_addr:STRING=
 
 //Enables the file system in Read_Only mode if true. ZynqMP fsbl
 // will set this to true
-XILFFS_read_only:BOOL=ON
+XILFFS_read_only:BOOL=OFF
 
 //Configures relative path feature (valid values 0 to 2).
 XILFFS_set_fs_rpath:STRING=0
@@ -311,7 +311,7 @@ XILFFS_use_lfn:STRING=0
 
 //Disable(0) or Enable(1) f_mkfs function. ZynqMP fsbl will set
 // this to false
-XILFFS_use_mkfs:BOOL=OFF
+XILFFS_use_mkfs:BOOL=ON
 
 //Enables the string functions (valid values 0 to 2).
 XILFFS_use_strfunc:STRING=0
@@ -394,7 +394,7 @@ XILSECURE_secure_environment:BOOL=OFF
 //Enables decryption of bitstream to memory and then writes it
 // to PCAP, allows calculation of sha on decrypted bitstream in
 // chunks valid only for ZynqMP FSBL BSP
-XILSECURE_tpm_support:BOOL=ON
+XILSECURE_tpm_support:BOOL=OFF
 
 //Enable Interval Timer
 XILTIMER_en_interval_timer:BOOL=OFF
@@ -693,7 +693,7 @@ standalone_xpm_support:BOOL=OFF
 
 //Disable or Enable Optimization for FSBL's BSP. ZynqMP FSBL will
 // set this to true
-standalone_zynqmp_fsbl_bsp:BOOL=ON
+standalone_zynqmp_fsbl_bsp:BOOL=OFF
 
 //Value Computed by CMake
 sysmonpsu_BINARY_DIR:STATIC=D:/Electronic_design/SPO2_monitor/platform/zynqmp_fsbl/zynqmp_fsbl_bsp/libsrc/build_configs/gen_bsp/libsrc/sysmonpsu/src
